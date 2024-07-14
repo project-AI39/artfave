@@ -1,16 +1,12 @@
 # artfave
 
-A new Flutter project.
+**ArtFaveは、ローカルの画像ファイルを簡単に閲覧するためのFlutterアプリケーションです。**
 
-## Getting Started
+**使用するにはリリースページからexeファイルの入ったzipファイルをダウンロードするか、自分でビルドしてください。**
 
-This project is a starting point for a Flutter application.
+**使用は自己責任でお願いします。**
 
-A few resources to get you started if this is your first Flutter project:
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+![1](https://github.com/user-attachments/assets/aea97637-3459-44fc-9fef-9c26c2010d5e)
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+![2](https://github.com/user-attachments/assets/695d7b09-3905-49e0-8ed2-269c7c612d1d)
