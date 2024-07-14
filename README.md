@@ -1,4 +1,4 @@
-# artfave
+# artfave v0.1.0-alpha
 
 **ArtFaveは、ローカルの画像ファイルを簡単に閲覧するためのFlutterアプリケーションです。**
 
