@@ -6,6 +6,10 @@
 
 **使用は自己責任でお願いします。**
 
+Windowsでしか動作確認してませんがflutterを使用したのでWindows,mac,linuxはビルドできると思います。
+webはブラウザのセキュリティ仕様でローカルファイルが開けないので動かないと思います。
+ios,androidは分かりません。
+
 
 ![1](https://github.com/user-attachments/assets/aea97637-3459-44fc-9fef-9c26c2010d5e)
 
