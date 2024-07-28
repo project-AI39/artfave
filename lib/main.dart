@@ -406,12 +406,14 @@ class ImageDisplayPageState extends State<ImageDisplayPage>
   final ImagePreloader _imagePreloader = ImagePreloader();
   bool _isFullScreen = false;
   bool _isControlBarVisible = true;
+  bool _isCommentVisible = false;
   DateTime _lastImageFolderCheck = DateTime.now();
   DateTime _lastFavoriteFolderCheck = DateTime.now();
   late List<File> imageFiles;
   late Set<String> favoriteFiles;
   int currentIndex = 0;
   final TextEditingController _currentIndexController = TextEditingController();
+  final TextEditingController _commentController = TextEditingController();
 
   Future<bool> _hasImageFolderChanged() async {
     final directory = Directory(widget.imageFolderPath);
@@ -572,6 +574,7 @@ class ImageDisplayPageState extends State<ImageDisplayPage>
         currentIndex++;
         _currentIndexController.text = (currentIndex + 1).toString();
       });
+      await _loadComment();
       logger.i({
         'show next image': {
           'next image index': currentIndex,
@@ -593,6 +596,7 @@ class ImageDisplayPageState extends State<ImageDisplayPage>
         currentIndex--;
         _currentIndexController.text = (currentIndex + 1).toString();
       });
+      await _loadComment();
       logger.i({
         'show previous image': {
           'previous image index': currentIndex,
@@ -615,6 +619,7 @@ class ImageDisplayPageState extends State<ImageDisplayPage>
       setState(() {
         currentIndex = newIndex - 1;
       });
+      await _loadComment();
       logger.i({
         'update current index': {
           'new index': currentIndex,
@@ -650,6 +655,20 @@ class ImageDisplayPageState extends State<ImageDisplayPage>
       final fileName = path.basename(currentImage.path);
       final destinationPath = path.join(widget.favoriteFolderPath, fileName);
       await currentImage.copy(destinationPath);
+
+      final commentFileName = '${path.basenameWithoutExtension(fileName)}.txt';
+      final commentFilePath =
+          path.join(widget.favoriteFolderPath, commentFileName);
+      if (_commentController.text.isNotEmpty) {
+        await File(commentFilePath).writeAsString(_commentController.text);
+      } else {
+        // コメントが空の場合、ファイルを削除
+        final commentFile = File(commentFilePath);
+        if (await commentFile.exists()) {
+          await commentFile.delete();
+        }
+      }
+
       logger.i('Saved image to favorites: $destinationPath');
       _scanFavoriteFolder();
     } catch (e) {
@@ -660,6 +679,33 @@ class ImageDisplayPageState extends State<ImageDisplayPage>
         );
       }
     }
+  }
+
+  Future _loadComment() async {
+    final currentImage = imageFiles[currentIndex];
+    final fileName = path.basename(currentImage.path);
+    final commentFileName = '${path.basenameWithoutExtension(fileName)}.txt';
+    final commentFilePath =
+        path.join(widget.favoriteFolderPath, commentFileName);
+
+    try {
+      final commentFile = File(commentFilePath);
+      if (await commentFile.exists()) {
+        final comment = await commentFile.readAsString();
+        _commentController.text = comment;
+      } else {
+        _commentController.clear();
+      }
+    } catch (e) {
+      logger.e('Failed to load comment: $e');
+      _commentController.clear();
+    }
+  }
+
+  void _toggleCommentField() {
+    setState(() {
+      _isCommentVisible = !_isCommentVisible;
+    });
   }
 
   @override
@@ -694,13 +740,52 @@ class ImageDisplayPageState extends State<ImageDisplayPage>
                   : Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Expanded(child: _buildImageViewer()),
+                        Expanded(
+                            child: Row(
+                          children: [
+                            if (_isCommentVisible)
+                              Flexible(
+                                flex: 1,
+                                child: _buildCommentField(),
+                              ),
+                            Flexible(
+                              flex: 3,
+                              child: _buildImageViewer(),
+                            ),
+                          ],
+                        )),
                         _buildControlBar(),
                       ],
                     ),
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildCommentField() {
+    return Container(
+      padding: const EdgeInsets.all(8),
+      child: TextFormField(
+        controller: _commentController,
+        maxLines: null,
+        textAlignVertical: TextAlignVertical.top,
+        expands: true,
+        decoration: const InputDecoration(
+          filled: true,
+          alignLabelWithHint: true,
+          fillColor: Color(0xFF121212),
+          hintText: 'コメントを入力...',
+          hintStyle: TextStyle(color: Colors.white54),
+          enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide(width: 1, color: Colors.white),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(width: 1, color: Colors.white),
+          ),
+        ),
+        style: const TextStyle(color: Colors.white),
       ),
     );
   }
@@ -784,6 +869,7 @@ class ImageDisplayPageState extends State<ImageDisplayPage>
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 _buildHomeButton(),
+                _buildCommentButton(),
                 const SizedBox(width: 10),
                 _buildFullScreenButton(),
                 const SizedBox(width: 10),
@@ -815,6 +901,16 @@ class ImageDisplayPageState extends State<ImageDisplayPage>
       icon: Icon(_isFullScreen ? Icons.fullscreen_exit : Icons.fullscreen),
       color: Colors.white,
       onPressed: _toggleFullScreen,
+    );
+  }
+
+  Widget _buildCommentButton() {
+    return IconButton(
+      icon: Icon(
+        _isCommentVisible ? Icons.comment : Icons.comment_outlined,
+        color: Colors.white,
+      ),
+      onPressed: _toggleCommentField,
     );
   }
 
